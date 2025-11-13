@@ -70,7 +70,7 @@ func (h *Handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team, err := h.service.GetTeam(teamName)
+	team, err := h.service.GetTeam(r.Context(), teamName)
 	if err != nil {
 		if errors.Is(err, errs.NotFoundErr) {
 			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
@@ -217,7 +217,7 @@ func (h *Handler) GetUserAssignments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pullRequests, err := h.service.GetUserAssignments(userID)
+	pullRequests, err := h.service.GetUserAssignments(r.Context(), userID)
 	if err != nil {
 		if errors.Is(err, errs.NotFoundErr) {
 			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)

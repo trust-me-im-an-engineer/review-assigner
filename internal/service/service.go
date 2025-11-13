@@ -13,11 +13,11 @@ type Service struct {
 	storage storage.Storage
 }
 
-func (s *Service) AddTeamAddUpdateUsers(context context.Context, m *model.Team) (*model.Team, error) {
+func (s *Service) AddTeamAddUpdateUsers(ctx context.Context, m *model.Team) (*model.Team, error) {
 	return nil, nil
 }
 
-func (s *Service) GetTeam(name string) (*model.Team, error) {
+func (s *Service) GetTeam(ctx context.Context, name string) (*model.Team, error) {
 	return nil, nil
 }
 
@@ -38,7 +38,7 @@ func (s *Service) ReassignPullRequest(ctx context.Context, pullRequestID, oldRev
 	return nil, "", nil
 }
 
-func (s *Service) GetUserAssignments(id string) ([]model.PullRequestShort, error) {
+func (s *Service) GetUserAssignments(ctx context.Context, id string) ([]model.PullRequestShort, error) {
 	return nil, nil
 }
 
