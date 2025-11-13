@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -37,7 +38,7 @@ func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if err := h.validate.Struct(req); err != nil {
-		writeJSONError(w, "some field is invalid", http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
 		return
 	}
 
