@@ -59,7 +59,7 @@ func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	writeJSONResponse(w, map[string]interface{}{"team": team}, http.StatusCreated)
+	writeJSONResponse(w, map[string]*model.Team{"team": team}, http.StatusCreated)
 }
 
 // GetTeam handles GET /team/get
@@ -107,7 +107,7 @@ func (h *Handler) SetUserActivity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSONResponse(w, map[string]interface{}{"user": user}, http.StatusOK)
+	writeJSONResponse(w, map[string]*model.User{"user": user}, http.StatusOK)
 }
 func (h *Handler) CreatePullRequest(w http.ResponseWriter, r *http.Request) {
 
