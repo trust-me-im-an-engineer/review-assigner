@@ -26,8 +26,8 @@ type Handler struct {
 	validate *validator.Validate
 }
 
-func NewHandler(service *service.Service) *Handler {
-	return &Handler{service: service}
+func NewHandler(service *service.Service, validate *validator.Validate) *Handler {
+	return &Handler{service: service, validate: validate}
 }
 
 func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) {
