@@ -38,7 +38,11 @@ func (s *Service) GetTeam(ctx context.Context, name string) (*model.Team, error)
 }
 
 func (s *Service) SetUserActivity(ctx context.Context, id string, active bool) (*model.User, error) {
-	return nil, nil
+	user, err := s.storage.SetUserActivity(ctx, id, active)
+	if err != nil {
+		return nil, fmt.Errorf("storage failed to set user activity: %w", err)
+	}
+	return user, nil
 }
 
 // Use model.PullRequestShort ignoring status
