@@ -31,6 +31,7 @@ func NewHandler(service *service.Service, validate *validator.Validate) *Handler
 	return &Handler{service: service, validate: validate}
 }
 
+// AddTeamAddUpdateUsers handles POST /team/add
 func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) {
 	var req payload.TeamAddRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -61,6 +62,7 @@ func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) 
 	writeJSONResponse(w, map[string]interface{}{"team": team}, http.StatusCreated)
 }
 
+// GetTeam handles GET /team/get
 func (h *Handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 	teamName := r.URL.Query().Get("team_name")
 	if teamName == "" {
