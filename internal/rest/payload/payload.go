@@ -49,11 +49,15 @@ type GetUserReviewResponse struct {
 	PullRequests []model.PullRequestShort `json:"pull_requests"`
 }
 
+// InnerError represents the nested 'error' object in the response.
+// Corresponds to the inner object of #/components/schemas/ErrorResponse.
+type InnerError struct {
+	Code    ErrorCode `json:"code"`
+	Message string    `json:"message"`
+}
+
 // ErrorResponse represents a standardized error response from the API.
 // Corresponds to #/components/schemas/ErrorResponse.
 type ErrorResponse struct {
-	Error struct {
-		Code    ErrorCode `json:"code"`
-		Message string    `json:"message"`
-	} `json:"error"`
+	Error InnerError `json:"error"`
 }
