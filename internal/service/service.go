@@ -30,6 +30,10 @@ func (s *Service) CreatePullRequest(ctx context.Context, pr *model.PullRequestSh
 	return nil, nil
 }
 
+func (s *Service) MergePullRequest(ctx context.Context, id string) (*model.PullRequest, error) {
+	return nil, nil
+}
+
 func NewService(storage *storage.Storage) *Service {
 	return &Service{storage: storage}
 }

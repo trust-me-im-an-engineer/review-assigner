@@ -146,10 +146,31 @@ func (h *Handler) CreatePullRequest(w http.ResponseWriter, r *http.Request) {
 	writeJSONResponse(w, map[string]*model.PullRequest{"pr": pr}, http.StatusCreated)
 }
 
+// MergePullRequest handles POST /pullRequest/merge
 func (h *Handler) MergePullRequest(w http.ResponseWriter, r *http.Request) {
+	var req payload.PullRequestMergeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
 
+	pr, err := h.service.MergePullRequest(r.Context(), req.PullRequestID)
+	if err != nil {
+		if errors.Is(err, errs.NotFoundErr) {
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			return
+		}
+		slog.Error("service failed to merge pull request", "error", err)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		return
+	}
+
+	writeJSONResponse(w, map[string]*model.PullRequest{"pr": pr}, http.StatusOK)
 }
-
 func (h *Handler) ReassignPullRequest(w http.ResponseWriter, r *http.Request) {
 
 }
