@@ -109,8 +109,41 @@ func (h *Handler) SetUserActivity(w http.ResponseWriter, r *http.Request) {
 
 	writeJSONResponse(w, map[string]*model.User{"user": user}, http.StatusOK)
 }
-func (h *Handler) CreatePullRequest(w http.ResponseWriter, r *http.Request) {
 
+// CreatePullRequest handles POST /pullRequest/create
+func (h *Handler) CreatePullRequest(w http.ResponseWriter, r *http.Request) {
+	var req payload.PullRequestCreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
+
+	// pull request status is ignored
+	pr, err := h.service.CreatePullRequest(r.Context(), &model.PullRequestShort{
+		PullRequestID:   req.PullRequestID,
+		PullRequestName: req.PullRequestName,
+		AuthorID:        req.AuthorID,
+	})
+	if err != nil {
+		if errors.Is(err, errs.NotFoundErr) {
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			return
+		}
+		var prErr errs.PullRequestExistsError
+		if errors.As(err, &prErr) {
+			writeJSONError(w, prErr.Error(), http.StatusConflict, payload.ErrCodePR_EXISTS)
+			return
+		}
+		slog.Error("service failed to create pull request", "error", err)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		return
+	}
+
+	writeJSONResponse(w, map[string]*model.PullRequest{"pr": pr}, http.StatusCreated)
 }
 
 func (h *Handler) MergePullRequest(w http.ResponseWriter, r *http.Request) {

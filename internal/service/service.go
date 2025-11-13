@@ -25,6 +25,11 @@ func (s *Service) SetUserActivity(ctx context.Context, id string, active bool) (
 	return nil, nil
 }
 
+// Use model.PullRequestShort ignoring status
+func (s *Service) CreatePullRequest(ctx context.Context, pr *model.PullRequestShort) (*model.PullRequest, error) {
+	return nil, nil
+}
+
 func NewService(storage *storage.Storage) *Service {
 	return &Service{storage: storage}
 }
