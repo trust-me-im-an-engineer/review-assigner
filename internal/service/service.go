@@ -38,6 +38,10 @@ func (s *Service) ReassignPullRequest(ctx context.Context, pullRequestID, oldRev
 	return nil, "", nil
 }
 
+func (s *Service) GetUserAssignments(id string) ([]model.PullRequestShort, error) {
+	return nil, nil
+}
+
 func NewService(storage *storage.Storage) *Service {
 	return &Service{storage: storage}
 }

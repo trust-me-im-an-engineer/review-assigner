@@ -209,8 +209,31 @@ func (h *Handler) ReassignPullRequest(w http.ResponseWriter, r *http.Request) {
 	writeJSONResponse(w, map[string]any{"pr": pr, "replaced_by": newReviewerID}, http.StatusOK)
 }
 
+// GetUserAssignments handles GET /users/getReview
 func (h *Handler) GetUserAssignments(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		writeJSONError(w, "missing query parameter 'user_id'", http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
 
+	pullRequests, err := h.service.GetUserAssignments(userID)
+	if err != nil {
+		if errors.Is(err, errs.NotFoundErr) {
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			return
+		}
+		slog.Error("service failed to get user assignments", "user_id", userID, "error", err)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		return
+	}
+
+	response := payload.GetUserReviewResponse{
+		UserID:       userID,
+		PullRequests: pullRequests,
+	}
+
+	writeJSONResponse(w, response, http.StatusOK)
 }
 
 func writeJSONError(w http.ResponseWriter, msg string, statusCode int, apiCode payload.ErrorCode) {
