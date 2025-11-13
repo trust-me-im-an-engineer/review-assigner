@@ -21,6 +21,10 @@ func (s *Service) GetTeam(name string) (*model.Team, error) {
 	return nil, nil
 }
 
+func (s *Service) SetUserActivity(ctx context.Context, id string, active bool) (*model.User, error) {
+	return nil, nil
+}
+
 func NewService(storage *storage.Storage) *Service {
 	return &Service{storage: storage}
 }

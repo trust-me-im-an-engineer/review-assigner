@@ -84,10 +84,31 @@ func (h *Handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 	writeJSONResponse(w, team, http.StatusOK)
 }
 
+// SetUserActivity handles POST /users/setIsActive
 func (h *Handler) SetUserActivity(w http.ResponseWriter, r *http.Request) {
+	var req payload.SetIsActiveRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
 
+	user, err := h.service.SetUserActivity(r.Context(), req.UserID, req.IsActive)
+	if err != nil {
+		if errors.Is(err, errs.NotFoundErr) {
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			return
+		}
+		slog.Error("service failed to set user activity", "error", err)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		return
+	}
+
+	writeJSONResponse(w, map[string]interface{}{"user": user}, http.StatusOK)
 }
-
 func (h *Handler) CreatePullRequest(w http.ResponseWriter, r *http.Request) {
 
 }
