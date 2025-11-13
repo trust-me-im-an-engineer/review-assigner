@@ -171,8 +171,42 @@ func (h *Handler) MergePullRequest(w http.ResponseWriter, r *http.Request) {
 
 	writeJSONResponse(w, map[string]*model.PullRequest{"pr": pr}, http.StatusOK)
 }
-func (h *Handler) ReassignPullRequest(w http.ResponseWriter, r *http.Request) {
 
+// ReassignPullRequest handles POST /pullRequest/reassign
+func (h *Handler) ReassignPullRequest(w http.ResponseWriter, r *http.Request) {
+	var req payload.PullRequestReassignRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
+
+	pr, newReviewerID, err := h.service.ReassignPullRequest(r.Context(), req.PullRequestID, req.OldReviewerID)
+	if err != nil {
+		if errors.Is(err, errs.NotFoundErr) {
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			return
+		}
+		if errors.Is(err, errs.PullRequestMergedErr) {
+			writeJSONError(w, errs.PullRequestMergedErr.Error(), http.StatusConflict, payload.ErrCodePR_MERGED)
+			return
+		}
+		if errors.Is(err, errs.NotAssignedErr) {
+			writeJSONError(w, errs.NotAssignedErr.Error(), http.StatusConflict, payload.ErrCodeNOT_ASSIGNED)
+			return
+		} else if errors.Is(err, errs.NoCandidateErr) {
+			writeJSONError(w, errs.NoCandidateErr.Error(), http.StatusConflict, payload.ErrCodeNO_CANDIDATE)
+			return
+		}
+		slog.Error("service failed to reassign pull request", "error", err)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		return
+	}
+
+	writeJSONResponse(w, map[string]any{"pr": pr, "replaced_by": newReviewerID}, http.StatusOK)
 }
 
 func (h *Handler) GetUserAssignments(w http.ResponseWriter, r *http.Request) {

@@ -34,6 +34,10 @@ func (s *Service) MergePullRequest(ctx context.Context, id string) (*model.PullR
 	return nil, nil
 }
 
+func (s *Service) ReassignPullRequest(ctx context.Context, pullRequestID, oldReviewerID string) (pr *model.PullRequest, newReviewerID string, err error) {
+	return nil, "", nil
+}
+
 func NewService(storage *storage.Storage) *Service {
 	return &Service{storage: storage}
 }
