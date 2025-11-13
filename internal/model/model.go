@@ -1,7 +1,9 @@
 // Package model represents data in app.
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type PullRequestStatus string
 

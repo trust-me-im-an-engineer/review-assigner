@@ -10,7 +10,7 @@ func NewRouter(s *service.Service) *http.ServeMux {
 	h := handlers.NewHandler(s)
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /team/add", h.AddTeam)
+	mux.HandleFunc("POST /team/add", h.AddTeamAddUpdateUsers)
 	mux.HandleFunc("GET /team/get", h.GetTeam)
 	mux.HandleFunc("POST /users/setIsActive", h.SetUserActivity)
 	mux.HandleFunc("POST /pullRequest/create", h.CreatePullRequest)
