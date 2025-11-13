@@ -13,11 +13,11 @@ var (
 )
 
 type TeamExistsError struct {
-	TeamID string
+	TeamName string
 }
 
 func (e TeamExistsError) Error() string {
-	return fmt.Sprintf("%s already exists", e.TeamID)
+	return fmt.Sprintf("%s already exists", e.TeamName)
 }
 
 type PullRequestExistsError struct {
