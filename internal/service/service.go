@@ -30,7 +30,11 @@ func (s *Service) AddTeamAddUpdateUsers(ctx context.Context, team *model.Team) (
 }
 
 func (s *Service) GetTeam(ctx context.Context, name string) (*model.Team, error) {
-	//team, err := s.storage.GetTeam(name)
+	team, err := s.storage.GetTeam(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("storage failed to get team: %w", err)
+	}
+	return team, nil
 }
 
 func (s *Service) SetUserActivity(ctx context.Context, id string, active bool) (*model.User, error) {
