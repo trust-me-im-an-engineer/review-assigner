@@ -51,7 +51,7 @@ func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) 
 		var teamErr errs.TeamExistsError
 		if errors.As(err, &teamErr) {
 			slog.Warn("team already exists on add", "team_name", req.TeamName, "error", teamErr)
-			writeJSONError(w, teamErr.Error(), http.StatusBadRequest, payload.ErrCodeTEAM_EXISTS)
+			writeJSONError(w, teamErr.Error(), http.StatusConflict, payload.ErrCodeTEAM_EXISTS)
 			return
 		}
 		slog.Error("service failed to add team and add/update users", "error", err)
