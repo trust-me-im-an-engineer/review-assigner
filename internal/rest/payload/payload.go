@@ -3,6 +3,17 @@ package payload
 
 import "review-assigner/internal/model"
 
+type ErrorCode string
+
+const (
+	ErrCodeTEAM_EXISTS  = "TEAM_EXISTS"
+	ErrCodePR_EXISTS    = "PR_EXISTS"
+	ErrCodePR_MERGED    = "PR_MERGED"
+	ErrCodeNOT_ASSIGNED = "NOT_ASSIGNED"
+	ErrCodeNO_CANDIDATE = "NO_CANDIDATE"
+	ErrCodeNOT_FOUND    = "NOT_FOUND"
+)
+
 // TeamAddRequest corresponds to the /team/add POST request body.
 // Validation is applied via embedded model.Team structure.
 type TeamAddRequest model.Team
@@ -42,7 +53,7 @@ type GetUserReviewResponse struct {
 // Corresponds to #/components/schemas/ErrorResponse.
 type ErrorResponse struct {
 	Error struct {
-		Code    string `json:"code"`
-		Message string `json:"message"`
+		Code    ErrorCode `json:"code"`
+		Message string    `json:"message"`
 	} `json:"error"`
 }
