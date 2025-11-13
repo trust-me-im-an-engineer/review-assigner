@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"review-assigner/internal/model"
 	"review-assigner/internal/storage"
@@ -13,12 +14,23 @@ type Service struct {
 	storage storage.Storage
 }
 
-func (s *Service) AddTeamAddUpdateUsers(ctx context.Context, m *model.Team) (*model.Team, error) {
-	return nil, nil
+func NewService(storage storage.Storage) *Service {
+	return &Service{storage: storage}
+}
+
+func (s *Service) AddTeamAddUpdateUsers(ctx context.Context, team *model.Team) (*model.Team, error) {
+	// schema requires user to always have team,
+	// so user creation, updating and team assignment must be in one big method,
+	// even tho it couples business logic to storage too tight.
+	members, err := s.storage.AddTeamAddUpdateUsers(ctx, team)
+	if err != nil {
+		return nil, fmt.Errorf("storage failed to add team add/update users: %w", err)
+	}
+	return members, nil
 }
 
 func (s *Service) GetTeam(ctx context.Context, name string) (*model.Team, error) {
-	return nil, nil
+	//team, err := s.storage.GetTeam(name)
 }
 
 func (s *Service) SetUserActivity(ctx context.Context, id string, active bool) (*model.User, error) {
@@ -40,8 +52,4 @@ func (s *Service) ReassignPullRequest(ctx context.Context, pullRequestID, oldRev
 
 func (s *Service) GetUserAssignments(ctx context.Context, id string) ([]model.PullRequestShort, error) {
 	return nil, nil
-}
-
-func NewService(storage *storage.Storage) *Service {
-	return &Service{storage: storage}
 }
