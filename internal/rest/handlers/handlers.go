@@ -58,7 +58,7 @@ func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	writeJSONResponse(w, team, http.StatusCreated)
+	writeJSONResponse(w, map[string]interface{}{"team": team}, http.StatusCreated)
 }
 
 func (h *Handler) GetTeam(w http.ResponseWriter, r *http.Request) {
