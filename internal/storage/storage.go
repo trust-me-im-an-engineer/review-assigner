@@ -10,6 +10,11 @@ type Storage interface {
 	Team
 	User
 	PullRequest
+
+	// InTransaction executes given function in a transaction.
+	// The transaction will be committed if fn returns nil, or rolled back otherwise.
+	// The context passed to fn should be used for all underlying database operations.
+	InTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
 type Team interface {

@@ -10,7 +10,6 @@ import (
 	"review-assigner/internal/errs"
 	"review-assigner/internal/model"
 	"review-assigner/internal/storage"
-	"review-assigner/internal/storage/transaction"
 )
 
 // Service is considered to be a core layer of witch only one could exist,
@@ -19,21 +18,19 @@ import (
 // This service is fairly simple so one object is enough,
 // but in the future it could be separated into more services.
 type Service struct {
-	storage   storage.Storage
-	txManager transaction.Manager
+	storage storage.Storage
 }
 
-func NewService(storage storage.Storage, txManager transaction.Manager) *Service {
+func NewService(storage storage.Storage) *Service {
 	return &Service{
-		storage:   storage,
-		txManager: txManager,
+		storage: storage,
 	}
 }
 
 func (s *Service) AddTeamAddUpdateUsers(ctx context.Context, team *model.Team) (*model.Team, error) {
 	var result *model.Team
 
-	err := s.txManager.Do(ctx, func(ctx context.Context) error {
+	err := s.storage.InTransaction(ctx, func(ctx context.Context) error {
 		teamName, err := s.storage.AddTeam(ctx, team.TeamName)
 		if err != nil {
 			return fmt.Errorf("storage failed to add team: %w", err)
@@ -101,7 +98,7 @@ func (s *Service) SetUserActivity(ctx context.Context, id string, active bool) (
 func (s *Service) CreatePullRequest(ctx context.Context, pr *model.PullRequestShort) (*model.PullRequest, error) {
 	var result *model.PullRequest
 
-	err := s.txManager.Do(ctx, func(ctx context.Context) error {
+	err := s.storage.InTransaction(ctx, func(ctx context.Context) error {
 		activeColleges, err := s.storage.GetActiveColleges(ctx, pr.AuthorID)
 		if err != nil {
 			return fmt.Errorf("storage failed to get active collegs: %w", err)
@@ -150,7 +147,7 @@ func (s *Service) CreatePullRequest(ctx context.Context, pr *model.PullRequestSh
 func (s *Service) MergePullRequest(ctx context.Context, id string) (*model.PullRequest, error) {
 	var result *model.PullRequest
 
-	err := s.txManager.Do(ctx, func(ctx context.Context) error {
+	err := s.storage.InTransaction(ctx, func(ctx context.Context) error {
 		pr, err := s.storage.GetPullRequest(ctx, id)
 		if err != nil {
 			return fmt.Errorf("storage failed to get pull request: %w", err)
@@ -175,7 +172,7 @@ func (s *Service) MergePullRequest(ctx context.Context, id string) (*model.PullR
 }
 
 func (s *Service) ReassignPullRequest(ctx context.Context, pullRequestID, oldReviewerID string) (pr *model.PullRequest, newReviewerID string, err error) {
-	err = s.txManager.Do(ctx, func(ctx context.Context) error {
+	err = s.storage.InTransaction(ctx, func(ctx context.Context) error {
 		pr, err := s.storage.GetPullRequest(ctx, pullRequestID)
 		if err != nil {
 			return fmt.Errorf("storage failed to get pull request: %w", err)
