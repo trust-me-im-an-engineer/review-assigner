@@ -14,7 +14,10 @@ import (
 )
 
 // Service is considered to be a core layer of witch only one could exist,
-// therefore it doesn't use interface
+// therefore it doesn't use interface.
+//
+// This service is fairly simple so one object is enough,
+// but in the future it could be separated into more services.
 type Service struct {
 	storage   storage.Storage
 	txManager transaction.Manager
