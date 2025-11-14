@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"math/rand/v2"
+	"slices"
 	"time"
 
+	"review-assigner/internal/errs"
 	"review-assigner/internal/model"
 	"review-assigner/internal/storage"
 	"review-assigner/internal/storage/transaction"
@@ -170,7 +172,53 @@ func (s *Service) MergePullRequest(ctx context.Context, id string) (*model.PullR
 }
 
 func (s *Service) ReassignPullRequest(ctx context.Context, pullRequestID, oldReviewerID string) (pr *model.PullRequest, newReviewerID string, err error) {
-	return nil, "", nil
+	err = s.txManager.Do(ctx, func(ctx context.Context) error {
+		pr, err := s.storage.GetPullRequest(ctx, pullRequestID)
+		if err != nil {
+			return fmt.Errorf("storage failed to get pull request: %w", err)
+		}
+
+		if pr.Status == model.PullRequestStatusMERGED {
+			return errs.PullRequestMergedErr
+		}
+
+		if !slices.Contains(pr.AssignedReviewers, oldReviewerID) {
+			return errs.NotAssignedErr
+		}
+
+		// Search by author id and not oldReviewerID because reviewer could've changed team,
+		// and we need original team to review pr.
+		activeColleges, err := s.storage.GetActiveColleges(ctx, pr.AuthorID)
+		if err != nil {
+			return fmt.Errorf("storage failed to get active colleges: %w", err)
+		}
+
+		// remove oldReviewer to avoid setting same reviewer
+		if i := slices.Index(activeColleges, oldReviewerID); i != -1 {
+			activeColleges = slices.Delete(activeColleges, i, i+1)
+		}
+
+		if len(activeColleges) < 1 {
+			return errs.NoCandidateErr
+		}
+
+		newReviewerID = activeColleges[rand.Int()%len(activeColleges)]
+
+		i := slices.Index(pr.AssignedReviewers, oldReviewerID)
+		pr.AssignedReviewers[i] = newReviewerID
+
+		pr, err = s.storage.UpdatePullRequest(ctx, pr)
+		if err != nil {
+			return fmt.Errorf("stoage failed to update pull request: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, "", err
+	}
+	return pr, newReviewerID, nil
 }
 
 func (s *Service) GetUserAssignments(ctx context.Context, id string) ([]model.PullRequestShort, error) {
