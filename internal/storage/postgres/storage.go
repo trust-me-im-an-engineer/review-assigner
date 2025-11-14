@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"review-assigner/internal/config"
@@ -14,12 +15,20 @@ import (
 
 var _ storage.Storage = (*Storage)(nil)
 
-type activeTxKey int
-
 var txContextKey activeTxKey = 0
 
 type Storage struct {
+	// pool is not meant to be used in data access methods!
+	// use getExecutor instead.
 	pool *pgxpool.Pool
+}
+
+type activeTxKey int
+
+type executor interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 }
 
 // New initializes new postgres storage ready to work.
@@ -75,4 +84,13 @@ func (s *Storage) InTransaction(ctx context.Context, fn func(ctx context.Context
 	commitErr = fn(txCtx)
 
 	return commitErr
+}
+
+// getExecutor retrieves the active transaction from the context if it exists,
+// otherwise, it returns the underlying connection pool.
+func (s *Storage) getExecutor(ctx context.Context) executor {
+	if tx, ok := ctx.Value(txContextKey).(pgx.Tx); ok {
+		return tx
+	}
+	return s.pool
 }
