@@ -64,6 +64,9 @@ func (s *Storage) Close() {
 }
 
 func (s *Storage) InTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	if _, ok := ctx.Value(txContextKey).(pgx.Tx); ok {
+		return fn(ctx)
+	}
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("postgres pool failed to begin transaction: %w", err)
