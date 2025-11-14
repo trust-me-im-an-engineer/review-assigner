@@ -73,6 +73,25 @@ func (s *Storage) SetUserActivity(ctx context.Context, id string, active bool) (
 }
 
 func (s *Storage) GetActiveColleges(ctx context.Context, userID string) ([]string, error) {
-	//TODO implement me
-	panic("implement me")
+	q := `SELECT id FROM users 
+		  WHERE is_active = TRUE AND team_name = 
+		  		(SELECT team_name FROM users WHERE id = $1)`
+	rows, err := s.getExecutor(ctx).Query(ctx, q, userID)
+	if err != nil {
+		return nil, fmt.Errorf("postgres failed to esecute query: %w", err)
+	}
+	defer rows.Close()
+
+	activeColleges, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (string, error) {
+		var id string
+		if err := row.Scan(&id); err != nil {
+			return "", err
+		}
+		return id, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("pgx failed to collect rows: %w", err)
+	}
+
+	return activeColleges, nil
 }
