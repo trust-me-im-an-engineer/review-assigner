@@ -4,7 +4,10 @@ go 1.24.0
 
 toolchain go1.24.9
 
-require github.com/go-playground/validator/v10 v10.28.0
+require (
+	github.com/caarlos0/env/v6 v6.10.1
+	github.com/go-playground/validator/v10 v10.28.0
+)
 
 require (
 	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
