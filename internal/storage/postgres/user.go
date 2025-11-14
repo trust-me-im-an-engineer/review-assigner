@@ -12,6 +12,7 @@ import (
 	"review-assigner/internal/storage/postgres/dao"
 )
 
+// AddUpdateUsers handles bulk insertion and updating of users using ON CONFLICT.
 func (s *Storage) AddUpdateUsers(ctx context.Context, users []model.User) ([]model.User, error) {
 	vals := make([]any, 0, len(users))
 	for _, user := range users {
@@ -51,6 +52,7 @@ func (s *Storage) AddUpdateUsers(ctx context.Context, users []model.User) ([]mod
 	return result, nil
 }
 
+// SetUserActivity updates the is_active status for a single user by ID.
 func (s *Storage) SetUserActivity(ctx context.Context, id string, active bool) (*model.User, error) {
 	q := `UPDATE users SET is_active = $1 WHERE id = $2 RETURNING *`
 	rows, err := s.getExecutor(ctx).Query(ctx, q, active, id)
