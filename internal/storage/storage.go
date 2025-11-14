@@ -13,4 +13,6 @@ type Storage interface {
 	SetUserActivity(ctx context.Context, id string, active bool) (*model.User, error)
 	GetActiveColleges(ctx context.Context, userID string) ([]string, error)
 	CreatePullRequest(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error)
+	GetPullRequest(ctx context.Context, id string) (*model.PullRequest, error)
+	UpdatePullRequest(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error)
 }

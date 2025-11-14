@@ -143,7 +143,30 @@ func (s *Service) CreatePullRequest(ctx context.Context, pr *model.PullRequestSh
 }
 
 func (s *Service) MergePullRequest(ctx context.Context, id string) (*model.PullRequest, error) {
-	return nil, nil
+	var result *model.PullRequest
+
+	err := s.txManager.Do(ctx, func(ctx context.Context) error {
+		pr, err := s.storage.GetPullRequest(ctx, id)
+		if err != nil {
+			return fmt.Errorf("storage failed to get pull request: %w", err)
+		}
+
+		pr.Status = model.PullRequestStatusMERGED
+		mergedAt := time.Now()
+		pr.MergedAt = &mergedAt
+
+		result, err = s.storage.UpdatePullRequest(ctx, pr)
+		if err != nil {
+			return fmt.Errorf("storage failed to update pull request: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (s *Service) ReassignPullRequest(ctx context.Context, pullRequestID, oldReviewerID string) (pr *model.PullRequest, newReviewerID string, err error) {
