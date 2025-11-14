@@ -72,10 +72,12 @@ func (s *Storage) SetUserActivity(ctx context.Context, id string, active bool) (
 	return &user, nil
 }
 
+// GetActiveColleges finds IDs of all active users belonging to the same team as the given userID (excluding userID itself).
 func (s *Storage) GetActiveColleges(ctx context.Context, userID string) ([]string, error) {
 	q := `SELECT id FROM users 
 		  WHERE is_active = TRUE AND team_name = 
-		  		(SELECT team_name FROM users WHERE id = $1)`
+		  		  (SELECT team_name FROM users WHERE id = $1)
+		  	  AND id <> $1`
 	rows, err := s.getExecutor(ctx).Query(ctx, q, userID)
 	if err != nil {
 		return nil, fmt.Errorf("postgres failed to esecute query: %w", err)
