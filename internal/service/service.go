@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"math/rand/v2"
+	"time"
 
 	"review-assigner/internal/model"
 	"review-assigner/internal/storage"
@@ -90,9 +92,54 @@ func (s *Service) SetUserActivity(ctx context.Context, id string, active bool) (
 	return user, nil
 }
 
-// Use model.PullRequestShort ignoring status
+// CreatePullRequest ignores status field in model.PullRequestShort
 func (s *Service) CreatePullRequest(ctx context.Context, pr *model.PullRequestShort) (*model.PullRequest, error) {
-	return nil, nil
+	var result *model.PullRequest
+
+	err := s.txManager.Do(ctx, func(ctx context.Context) error {
+		activeColleges, err := s.storage.GetActiveColleges(ctx, pr.AuthorID)
+		if err != nil {
+			return fmt.Errorf("storage failed to get active collegs: %w", err)
+		}
+
+		// Pick two distinct reviewers at random
+		reviewers := make([]string, 0, 2)
+		if len(activeColleges) <= 2 {
+			reviewers = activeColleges
+		} else {
+			i1 := rand.Int() % len(activeColleges)
+			reviewers = append(reviewers, activeColleges[i1])
+			i2 := rand.Int() % (len(activeColleges) - 1)
+			// increment to avoid picking same college twice
+			if i2 >= i1 {
+				i2++
+			}
+			reviewers = append(reviewers, activeColleges[i2])
+		}
+
+		createdAt := time.Now()
+		inputPR := &model.PullRequest{
+			PullRequestID:     pr.PullRequestID,
+			PullRequestName:   pr.PullRequestName,
+			AuthorID:          pr.AuthorID,
+			Status:            model.PullRequestStatusOPEN,
+			AssignedReviewers: reviewers,
+			CreatedAt:         &createdAt,
+			MergedAt:          nil,
+		}
+
+		result, err = s.storage.CreatePullRequest(ctx, inputPR)
+		if err != nil {
+			return fmt.Errorf("storage failed to create pull request: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (s *Service) MergePullRequest(ctx context.Context, id string) (*model.PullRequest, error) {
