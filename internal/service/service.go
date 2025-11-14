@@ -6,16 +6,21 @@ import (
 
 	"review-assigner/internal/model"
 	"review-assigner/internal/storage"
+	"review-assigner/internal/storage/transaction"
 )
 
 // Service is considered to be a core layer of witch only one could exist,
 // therefore it doesn't use interface
 type Service struct {
-	storage storage.Storage
+	storage   storage.Storage
+	txManager transaction.Manager
 }
 
-func NewService(storage storage.Storage) *Service {
-	return &Service{storage: storage}
+func NewService(storage storage.Storage, txManager transaction.Manager) *Service {
+	return &Service{
+		storage:   storage,
+		txManager: txManager,
+	}
 }
 
 func (s *Service) AddTeamAddUpdateUsers(ctx context.Context, team *model.Team) (*model.Team, error) {
