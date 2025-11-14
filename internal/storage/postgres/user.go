@@ -2,11 +2,14 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
 
+	"review-assigner/internal/errs"
 	"review-assigner/internal/model"
+	"review-assigner/internal/storage/postgres/dao"
 )
 
 func (s *Storage) AddUpdateUsers(ctx context.Context, users []model.User) ([]model.User, error) {
@@ -35,24 +38,35 @@ func (s *Storage) AddUpdateUsers(ctx context.Context, users []model.User) ([]mod
 	}
 	defer rows.Close()
 
-	daoUsers, err := pgx.CollectRows(rows, pgx.RowToStructByName[userDAO])
+	daoUsers, err := pgx.CollectRows(rows, pgx.RowToStructByName[dao.User])
 
 	result := make([]model.User, len(daoUsers))
 	for i, daoUser := range daoUsers {
-		result[i] = model.User{
-			UserID:   daoUser.ID,
-			Username: daoUser.Username,
-			TeamName: daoUser.TeamName,
-			IsActive: daoUser.IsActive,
-		}
+		result[i] = daoUser.ToModel()
 	}
 
 	return result, nil
 }
 
 func (s *Storage) SetUserActivity(ctx context.Context, id string, active bool) (*model.User, error) {
-	//TODO implement me
-	panic("implement me")
+	q := `UPDATE users SET is_active = $1 WHERE id = $2 RETURNING *`
+	rows, err := s.getExecutor(ctx).Query(ctx, q, active, id)
+	if err != nil {
+		return nil, fmt.Errorf("postgres failed to esecute query: %w", err)
+	}
+	defer rows.Close()
+
+	daoUser, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[dao.User])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.NotFoundErr
+		}
+		return nil, fmt.Errorf("pgx failed to collect one row: %w", err)
+	}
+
+	user := daoUser.ToModel()
+
+	return &user, nil
 }
 
 func (s *Storage) GetActiveColleges(ctx context.Context, userID string) ([]string, error) {
