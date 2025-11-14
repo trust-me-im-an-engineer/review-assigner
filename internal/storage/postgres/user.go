@@ -39,6 +39,9 @@ func (s *Storage) AddUpdateUsers(ctx context.Context, users []model.User) ([]mod
 	defer rows.Close()
 
 	daoUsers, err := pgx.CollectRows(rows, pgx.RowToStructByName[dao.User])
+	if err != nil {
+		return nil, fmt.Errorf("pgx failed to collect rows: %w", err)
+	}
 
 	result := make([]model.User, len(daoUsers))
 	for i, daoUser := range daoUsers {
