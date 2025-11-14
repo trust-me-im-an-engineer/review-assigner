@@ -24,14 +24,54 @@ func NewService(storage storage.Storage, txManager transaction.Manager) *Service
 }
 
 func (s *Service) AddTeamAddUpdateUsers(ctx context.Context, team *model.Team) (*model.Team, error) {
-	// schema requires user to always have team,
-	// so user creation, updating and team assignment must be in one big method,
-	// even tho it couples business logic to storage too tight.
-	members, err := s.storage.AddTeamAddUpdateUsers(ctx, team)
+	var result *model.Team
+
+	err := s.txManager.Do(ctx, func(ctx context.Context) error {
+		teamName, err := s.storage.AddTeam(ctx, team.TeamName)
+		if err != nil {
+			return fmt.Errorf("storage failed to add team: %w", err)
+		}
+
+		inputUsers := make([]model.User, len(team.Members))
+		for i, member := range team.Members {
+			inputUsers[i] = model.User{
+				UserID:   member.UserID,
+				Username: member.Username,
+				TeamName: team.TeamName,
+				IsActive: member.IsActive,
+			}
+		}
+
+		users, err := s.storage.AddUpdateUsers(ctx, inputUsers)
+		if err != nil {
+			return fmt.Errorf("storage failed to add/update users: %w", err)
+		}
+
+		// Strictly speaking storage doesn't add anything new to users,
+		// so we could just return team parameter,
+		// but for future-proofing and consistency sake we parse team back from storage
+
+		members := make([]model.TeamMember, len(users))
+		for i, user := range users {
+			members[i] = model.TeamMember{
+				UserID:   user.UserID,
+				Username: user.Username,
+				IsActive: user.IsActive,
+			}
+		}
+
+		result = &model.Team{
+			TeamName: teamName,
+			Members:  members,
+		}
+
+		return nil
+	})
+
 	if err != nil {
-		return nil, fmt.Errorf("storage failed to add team add/update users: %w", err)
+		return nil, err
 	}
-	return members, nil
+	return result, nil
 }
 
 func (s *Service) GetTeam(ctx context.Context, name string) (*model.Team, error) {
