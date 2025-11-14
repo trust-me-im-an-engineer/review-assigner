@@ -69,6 +69,10 @@ func (h *Handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, "missing query parameter 'team_name'", http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
 		return
 	}
+	if len(teamName) > 255 {
+		writeJSONError(w, "team_name cannot be longer than 255 symbols", http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
 
 	team, err := h.service.GetTeam(r.Context(), teamName)
 	if err != nil {
@@ -214,6 +218,10 @@ func (h *Handler) GetUserAssignments(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
 		writeJSONError(w, "missing query parameter 'user_id'", http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		return
+	}
+	if len(userID) > 255 {
+		writeJSONError(w, "user_id cannot be longer than 255 symbols", http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
 		return
 	}
 

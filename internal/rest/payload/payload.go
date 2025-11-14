@@ -20,26 +20,26 @@ type TeamAddRequest model.Team
 
 // SetIsActiveRequest corresponds to the /users/setIsActive POST request body.
 type SetIsActiveRequest struct {
-	UserID   string `json:"user_id" validate:"required"`
+	UserID   string `json:"user_id" validate:"required,max=255"`
 	IsActive bool   `json:"is_active"`
 }
 
 // PullRequestCreateRequest corresponds to the /pullRequest/create POST request body.
 type PullRequestCreateRequest struct {
-	PullRequestID   string `json:"pull_request_id" validate:"required"`
-	PullRequestName string `json:"pull_request_name" validate:"required"`
-	AuthorID        string `json:"author_id" validate:"required"`
+	PullRequestID   string `json:"pull_request_id" validate:"required,max=255"`
+	PullRequestName string `json:"pull_request_name" validate:"required,max=255"`
+	AuthorID        string `json:"author_id" validate:"required,max=255"`
 }
 
 // PullRequestMergeRequest corresponds to the /pullRequest/merge POST request body.
 type PullRequestMergeRequest struct {
-	PullRequestID string `json:"pull_request_id" validate:"required"`
+	PullRequestID string `json:"pull_request_id" validate:"required,max=255"`
 }
 
 // PullRequestReassignRequest corresponds to the /pullRequest/reassign POST request body.
 type PullRequestReassignRequest struct {
-	PullRequestID string `json:"pull_request_id" validate:"required"`
-	OldReviewerID string `json:"old_user_id" validate:"required"`
+	PullRequestID string `json:"pull_request_id" validate:"required,max=255"`
+	OldReviewerID string `json:"old_user_id" validate:"required,max=255"`
 }
 
 // GetUserReviewResponse corresponds to the /users/getReview GET response.
