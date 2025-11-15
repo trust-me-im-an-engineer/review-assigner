@@ -12,7 +12,7 @@ type User struct {
 
 func (u User) ToModel() model.User {
 	return model.User{
-		UserID:   u.ID,
+		Id:       u.ID,
 		Username: u.Username,
 		TeamName: u.TeamName,
 		IsActive: u.IsActive,

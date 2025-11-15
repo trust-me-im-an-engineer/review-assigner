@@ -31,7 +31,7 @@ func (s *Service) AddTeamAddUpdateUsers(ctx context.Context, team *model.Team) (
 	var result *model.Team
 
 	err := s.storage.InTransaction(ctx, func(ctx context.Context) error {
-		teamName, err := s.storage.AddTeam(ctx, team.TeamName)
+		teamName, err := s.storage.AddTeam(ctx, team.Name)
 		if err != nil {
 			return fmt.Errorf("storage failed to add team: %w", err)
 		}
@@ -39,9 +39,9 @@ func (s *Service) AddTeamAddUpdateUsers(ctx context.Context, team *model.Team) (
 		inputUsers := make([]model.User, len(team.Members))
 		for i, member := range team.Members {
 			inputUsers[i] = model.User{
-				UserID:   member.UserID,
+				Id:       member.UserID,
 				Username: member.Username,
-				TeamName: team.TeamName,
+				TeamName: team.Name,
 				IsActive: member.IsActive,
 			}
 		}
@@ -58,15 +58,15 @@ func (s *Service) AddTeamAddUpdateUsers(ctx context.Context, team *model.Team) (
 		members := make([]model.TeamMember, len(users))
 		for i, user := range users {
 			members[i] = model.TeamMember{
-				UserID:   user.UserID,
+				UserID:   user.Id,
 				Username: user.Username,
 				IsActive: user.IsActive,
 			}
 		}
 
 		result = &model.Team{
-			TeamName: teamName,
-			Members:  members,
+			Name:    teamName,
+			Members: members,
 		}
 
 		return nil
@@ -121,8 +121,8 @@ func (s *Service) CreatePullRequest(ctx context.Context, pr *model.PullRequestSh
 
 		createdAt := time.Now()
 		inputPR := &model.PullRequest{
-			PullRequestID:     pr.PullRequestID,
-			PullRequestName:   pr.PullRequestName,
+			Id:                pr.Id,
+			Name:              pr.Name,
 			AuthorID:          pr.AuthorID,
 			Status:            model.PullRequestStatusOPEN,
 			AssignedReviewers: reviewers,

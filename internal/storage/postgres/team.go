@@ -64,8 +64,8 @@ func (s *Storage) GetTeam(ctx context.Context, name string) (*model.Team, error)
 		}
 
 		team = model.Team{
-			TeamName: teamName,
-			Members:  members,
+			Name:    teamName,
+			Members: members,
 		}
 
 		return nil

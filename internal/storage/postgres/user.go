@@ -16,7 +16,7 @@ import (
 func (s *Storage) AddUpdateUsers(ctx context.Context, users []model.User) ([]model.User, error) {
 	vals := make([]any, 0, len(users))
 	for _, user := range users {
-		vals = append(vals, []any{user.UserID, user.Username, user.TeamName, user.IsActive})
+		vals = append(vals, []any{user.Id, user.Username, user.TeamName, user.IsActive})
 	}
 
 	builder := squirrelBuilder.Insert("users").

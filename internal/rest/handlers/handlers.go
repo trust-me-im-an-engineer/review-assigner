@@ -44,13 +44,13 @@ func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) 
 	}
 
 	team, err := h.service.AddTeamAddUpdateUsers(r.Context(), &model.Team{
-		TeamName: req.TeamName,
-		Members:  req.Members,
+		Name:    req.Name,
+		Members: req.Members,
 	})
 	if err != nil {
 		var teamErr errs.TeamExistsError
 		if errors.As(err, &teamErr) {
-			slog.Warn("team already exists on add", "team_name", req.TeamName, "error", teamErr)
+			slog.Warn("team already exists on add", "team_name", req.Name, "error", teamErr)
 			writeJSONError(w, teamErr.Error(), http.StatusConflict, payload.ErrCodeTEAM_EXISTS)
 			return
 		}
@@ -128,9 +128,9 @@ func (h *Handler) CreatePullRequest(w http.ResponseWriter, r *http.Request) {
 
 	// pull request status is ignored
 	pr, err := h.service.CreatePullRequest(r.Context(), &model.PullRequestShort{
-		PullRequestID:   req.PullRequestID,
-		PullRequestName: req.PullRequestName,
-		AuthorID:        req.AuthorID,
+		Id:       req.PullRequestID,
+		Name:     req.PullRequestName,
+		AuthorID: req.AuthorID,
 	})
 	if err != nil {
 		if errors.Is(err, errs.NotFoundErr) {

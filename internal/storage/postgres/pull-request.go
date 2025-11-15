@@ -21,11 +21,11 @@ func (s *Storage) CreatePullRequestWithAssignments(ctx context.Context, pr *mode
 
 		qPR := `INSERT INTO pull_requests (id, name, author_id, status, created_at, merged_at) 
 		  VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`
-		rowsPR, err := e.Query(ctx, qPR, pr.PullRequestID, pr.PullRequestName, pr.AuthorID, pr.Status, pr.CreatedAt, pr.MergedAt)
+		rowsPR, err := e.Query(ctx, qPR, pr.Id, pr.Name, pr.AuthorID, pr.Status, pr.CreatedAt, pr.MergedAt)
 		if err != nil {
 			var pgxError *pgconn.PgError
 			if errors.As(err, &pgxError) && pgxError.Code == UniqueViolationErr {
-				return errs.PullRequestExistsError{PullRequestID: pr.PullRequestID}
+				return errs.PullRequestExistsError{PullRequestID: pr.Id}
 			}
 			return fmt.Errorf("postgres failed to execute insert query for pull request: %w", err)
 		}
@@ -38,7 +38,7 @@ func (s *Storage) CreatePullRequestWithAssignments(ctx context.Context, pr *mode
 
 		vals := make([]any, 0, 2)
 		for _, reviewer := range pr.AssignedReviewers {
-			vals = append(vals, reviewer, pr.PullRequestID)
+			vals = append(vals, reviewer, pr.Id)
 		}
 
 		builder := squirrelBuilder.Insert("review_assignments").
@@ -64,8 +64,8 @@ func (s *Storage) CreatePullRequestWithAssignments(ctx context.Context, pr *mode
 		}
 
 		createdPR = model.PullRequest{
-			PullRequestID:     daoPR.ID,
-			PullRequestName:   daoPR.Name,
+			Id:                daoPR.ID,
+			Name:              daoPR.Name,
 			AuthorID:          daoPR.AuthorID,
 			Status:            daoPR.Status,
 			AssignedReviewers: assignedReviewers,
@@ -91,7 +91,7 @@ func (s *Storage) UpdatePullRequest(ctx context.Context, pr *model.PullRequest) 
 	q := `UPDATE pull_requests
 		  SET name = $2, author_id = $3, status = $4, created_at = $5, merged_at = $6
 		  WHERE id = $1 RETURNING *`
-	rows, err := s.getExecutor(ctx).Query(ctx, q, pr.PullRequestID, pr.PullRequestName, pr.AuthorID, pr.Status, pr.CreatedAt, pr.MergedAt)
+	rows, err := s.getExecutor(ctx).Query(ctx, q, pr.Id, pr.Name, pr.AuthorID, pr.Status, pr.CreatedAt, pr.MergedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.NotFoundErr
@@ -106,8 +106,8 @@ func (s *Storage) UpdatePullRequest(ctx context.Context, pr *model.PullRequest) 
 	}
 
 	updatedPR := &model.PullRequest{
-		PullRequestID:     daoPR.ID,
-		PullRequestName:   daoPR.Name,
+		Id:                daoPR.ID,
+		Name:              daoPR.Name,
 		AuthorID:          daoPR.AuthorID,
 		Status:            daoPR.Status,
 		AssignedReviewers: pr.AssignedReviewers,
