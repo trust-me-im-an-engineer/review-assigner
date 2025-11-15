@@ -206,13 +206,17 @@ func (s *Service) ReassignPullRequest(ctx context.Context, pullRequestID, oldRev
 
 		newReviewerID = activeColleges[rand.Int()%len(activeColleges)]
 
-		i := slices.Index(pr.AssignedReviewers, oldReviewerID)
-		pr.AssignedReviewers[i] = newReviewerID
-
-		pr, err = s.storage.UpdatePullRequest(ctx, pr)
-		if err != nil {
-			return fmt.Errorf("stoage failed to update pull request: %w", err)
+		if err := s.storage.DeleteReviewAssignment(ctx, pullRequestID, oldReviewerID); err != nil {
+			return fmt.Errorf("stoage failed to delete review assignment: %w", err)
 		}
+
+		insertedNewReviewerID, err := s.storage.AddReviewAssignment(ctx, pullRequestID, newReviewerID)
+		if err != nil {
+			return fmt.Errorf("storage failed to add review assignment: %w", err)
+		}
+
+		i := slices.Index(pr.AssignedReviewers, oldReviewerID)
+		pr.AssignedReviewers[i] = insertedNewReviewerID
 
 		return nil
 	})

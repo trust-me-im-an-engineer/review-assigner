@@ -10,6 +10,7 @@ type Storage interface {
 	Team
 	User
 	PullRequest
+	ReviewAssignment
 
 	// InTransaction executes given function in a transaction.
 	// The transaction will be committed if fn returns nil, or rolled back otherwise.
@@ -34,6 +35,11 @@ type PullRequest interface {
 	CreatePullRequestWithAssignments(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error)
 	GetPullRequest(ctx context.Context, id string) (*model.PullRequest, error)
 	UpdatePullRequest(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error)
+}
+
+type ReviewAssignment interface {
+	DeleteReviewAssignment(ctx context.Context, prID string, userID string) error
+	AddReviewAssignment(ctx context.Context, prID string, userID string) (reviewerID string, err error)
 
 	// GetUserAssignments returns pull requests where user is one of reviewers
 	GetUserAssignments(ctx context.Context, userID string) ([]model.PullRequestShort, error)
