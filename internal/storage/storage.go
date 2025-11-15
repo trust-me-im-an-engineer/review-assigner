@@ -31,7 +31,7 @@ type User interface {
 }
 
 type PullRequest interface {
-	CreatePullRequest(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error)
+	CreatePullRequestWithAssignments(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error)
 	GetPullRequest(ctx context.Context, id string) (*model.PullRequest, error)
 	UpdatePullRequest(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error)
 

@@ -130,9 +130,9 @@ func (s *Service) CreatePullRequest(ctx context.Context, pr *model.PullRequestSh
 			MergedAt:          nil,
 		}
 
-		result, err = s.storage.CreatePullRequest(ctx, inputPR)
+		result, err = s.storage.CreatePullRequestWithAssignments(ctx, inputPR)
 		if err != nil {
-			return fmt.Errorf("storage failed to create pull request: %w", err)
+			return fmt.Errorf("storage failed to create pull request with assignments: %w", err)
 		}
 
 		return nil
