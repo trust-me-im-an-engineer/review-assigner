@@ -83,8 +83,63 @@ func (s *Storage) CreatePullRequestWithAssignments(ctx context.Context, pr *mode
 }
 
 func (s *Storage) GetPullRequest(ctx context.Context, id string) (*model.PullRequest, error) {
-	//TODO implement me
-	panic("implement me")
+	var result model.PullRequest
+	err := s.InTransaction(ctx, func(ctx context.Context) error {
+		e := s.getExecutor(ctx)
+
+		qPR := `SELECT * FROM pull_requests WHERE id = $1`
+		rowsPR, err := e.Query(ctx, qPR, id)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return errs.NotFoundErr
+			}
+			return fmt.Errorf("postgres failed to get pull request: %w", err)
+		}
+		defer rowsPR.Close()
+
+		daoPR, err := pgx.CollectOneRow(rowsPR, pgx.RowToStructByName[dao.PullRequest])
+		if err != nil {
+			return fmt.Errorf("postgres failed to collect one row: %w", err)
+		}
+
+		result = model.PullRequest{
+			Id:        daoPR.ID,
+			Name:      daoPR.Name,
+			AuthorID:  daoPR.AuthorID,
+			Status:    daoPR.Status,
+			CreatedAt: daoPR.CreatedAt,
+			MergedAt:  daoPR.MergedAt,
+		}
+
+		qAssignments := `SELECT * FROM review_assignments WHERE pull_request_id = $1`
+		rowsAssignments, err := e.Query(ctx, qAssignments, id)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return errs.NotFoundErr
+			}
+			return fmt.Errorf("postgres failed to get review assignments: %w", err)
+		}
+		defer rowsAssignments.Close()
+
+		daoAssignments, err := pgx.CollectRows(rowsAssignments, pgx.RowToStructByName[dao.ReviewAssignment])
+		if err != nil {
+			return fmt.Errorf("postgres failed to collect rows: %w", err)
+		}
+
+		assignments := make([]string, len(daoAssignments))
+		for i, daoAssignment := range daoAssignments {
+			assignments[i] = daoAssignment.UserID
+		}
+
+		result.AssignedReviewers = assignments
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 func (s *Storage) UpdatePullRequest(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error) {
