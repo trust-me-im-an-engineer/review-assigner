@@ -15,3 +15,10 @@ type PullRequest struct {
 	CreatedAt *time.Time              `db:"created_at"`
 	MergedAt  *time.Time              `db:"merged_at"`
 }
+
+type PullRequestShort struct {
+	ID       string                  `db:"id"`
+	Name     string                  `db:"name"`
+	AuthorID string                  `db:"author_id"`
+	Status   model.PullRequestStatus `db:"status"`
+}
