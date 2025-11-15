@@ -6,12 +6,12 @@ import "review-assigner/internal/model"
 type ErrorCode string
 
 const (
-	ErrCodeTEAM_EXISTS  = "TEAM_EXISTS"
-	ErrCodePR_EXISTS    = "PR_EXISTS"
-	ErrCodePR_MERGED    = "PR_MERGED"
-	ErrCodeNOT_ASSIGNED = "NOT_ASSIGNED"
-	ErrCodeNO_CANDIDATE = "NO_CANDIDATE"
-	ErrCodeNOT_FOUND    = "NOT_FOUND"
+	ErrCodeTEAMExists  = "TEAM_EXISTS"
+	ErrCodePRExists    = "PR_EXISTS"
+	ErrCodePRMerged    = "PR_MERGED"
+	ErrCodeNotAssigned = "NOT_ASSIGNED"
+	ErrCodeNoCandidate = "NO_CANDIDATE"
+	ErrCodeNotFound    = "NOT_FOUND"
 )
 
 // TeamAddRequest corresponds to the /team/add POST request body.

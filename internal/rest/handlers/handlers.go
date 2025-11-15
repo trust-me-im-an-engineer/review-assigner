@@ -34,11 +34,11 @@ func NewHandler(service *service.Service, validate *validator.Validator) *Handle
 func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) {
 	var req payload.TeamAddRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 	if err := h.validate.Struct(req); err != nil {
-		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 
@@ -50,11 +50,11 @@ func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) 
 		var teamErr errs.TeamExistsError
 		if errors.As(err, &teamErr) {
 			slog.Warn("team already exists on add", "team_name", req.Name, "error", teamErr)
-			writeJSONError(w, teamErr.Error(), http.StatusConflict, payload.ErrCodeTEAM_EXISTS)
+			writeJSONError(w, teamErr.Error(), http.StatusConflict, payload.ErrCodeTEAMExists)
 			return
 		}
 		slog.Error("service failed to add team and add/update users", "error", err)
-		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNotFound)
 		return
 	}
 
@@ -65,22 +65,22 @@ func (h *Handler) AddTeamAddUpdateUsers(w http.ResponseWriter, r *http.Request) 
 func (h *Handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 	teamName := r.URL.Query().Get("team_name")
 	if teamName == "" {
-		writeJSONError(w, "missing query parameter 'team_name'", http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, "missing query parameter 'team_name'", http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 	if len(teamName) > 255 {
-		writeJSONError(w, "team_name cannot be longer than 255 symbols", http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, "team_name cannot be longer than 255 symbols", http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 
 	team, err := h.service.GetTeam(r.Context(), teamName)
 	if err != nil {
 		if errors.Is(err, errs.NotFoundErr) {
-			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNotFound)
 			return
 		}
 		slog.Error("service failed to get team", "error", err)
-		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNotFound)
 		return
 	}
 
@@ -91,22 +91,22 @@ func (h *Handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) SetUserActivity(w http.ResponseWriter, r *http.Request) {
 	var req payload.SetIsActiveRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 	if err := h.validate.Struct(req); err != nil {
-		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 
 	user, err := h.service.SetUserActivity(r.Context(), req.UserID, req.IsActive)
 	if err != nil {
 		if errors.Is(err, errs.NotFoundErr) {
-			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNotFound)
 			return
 		}
 		slog.Error("service failed to set user activity", "error", err)
-		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNotFound)
 		return
 	}
 
@@ -117,11 +117,11 @@ func (h *Handler) SetUserActivity(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreatePullRequest(w http.ResponseWriter, r *http.Request) {
 	var req payload.PullRequestCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 	if err := h.validate.Struct(req); err != nil {
-		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 
@@ -133,16 +133,16 @@ func (h *Handler) CreatePullRequest(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if errors.Is(err, errs.NotFoundErr) {
-			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNotFound)
 			return
 		}
 		var prErr errs.PullRequestExistsError
 		if errors.As(err, &prErr) {
-			writeJSONError(w, prErr.Error(), http.StatusConflict, payload.ErrCodePR_EXISTS)
+			writeJSONError(w, prErr.Error(), http.StatusConflict, payload.ErrCodePRExists)
 			return
 		}
 		slog.Error("service failed to create pull request", "error", err)
-		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNotFound)
 		return
 	}
 
@@ -153,22 +153,22 @@ func (h *Handler) CreatePullRequest(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) MergePullRequest(w http.ResponseWriter, r *http.Request) {
 	var req payload.PullRequestMergeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 	if err := h.validate.Struct(req); err != nil {
-		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 
 	pr, err := h.service.MergePullRequest(r.Context(), req.PullRequestID)
 	if err != nil {
 		if errors.Is(err, errs.NotFoundErr) {
-			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNotFound)
 			return
 		}
 		slog.Error("service failed to merge pull request", "error", err)
-		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNotFound)
 		return
 	}
 
@@ -179,33 +179,33 @@ func (h *Handler) MergePullRequest(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ReassignPullRequest(w http.ResponseWriter, r *http.Request) {
 	var req payload.PullRequestReassignRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, invalidJsonBodyMsg, http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 	if err := h.validate.Struct(req); err != nil {
-		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, fmt.Sprintf("invalid request: %s", err), http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 
 	pr, newReviewerID, err := h.service.ReassignPullRequest(r.Context(), req.PullRequestID, req.OldReviewerID)
 	if err != nil {
 		if errors.Is(err, errs.NotFoundErr) {
-			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNotFound)
 			return
 		}
 		if errors.Is(err, errs.PullRequestMergedErr) {
-			writeJSONError(w, errs.PullRequestMergedErr.Error(), http.StatusConflict, payload.ErrCodePR_MERGED)
+			writeJSONError(w, errs.PullRequestMergedErr.Error(), http.StatusConflict, payload.ErrCodePRMerged)
 			return
 		}
 		if errors.Is(err, errs.NotAssignedErr) {
-			writeJSONError(w, errs.NotAssignedErr.Error(), http.StatusConflict, payload.ErrCodeNOT_ASSIGNED)
+			writeJSONError(w, errs.NotAssignedErr.Error(), http.StatusConflict, payload.ErrCodeNotAssigned)
 			return
 		} else if errors.Is(err, errs.NoCandidateErr) {
-			writeJSONError(w, errs.NoCandidateErr.Error(), http.StatusConflict, payload.ErrCodeNO_CANDIDATE)
+			writeJSONError(w, errs.NoCandidateErr.Error(), http.StatusConflict, payload.ErrCodeNoCandidate)
 			return
 		}
 		slog.Error("service failed to reassign pull request", "error", err)
-		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNotFound)
 		return
 	}
 
@@ -216,22 +216,22 @@ func (h *Handler) ReassignPullRequest(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetUserAssignments(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
-		writeJSONError(w, "missing query parameter 'user_id'", http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, "missing query parameter 'user_id'", http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 	if len(userID) > 255 {
-		writeJSONError(w, "user_id cannot be longer than 255 symbols", http.StatusBadRequest, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, "user_id cannot be longer than 255 symbols", http.StatusBadRequest, payload.ErrCodeNotFound)
 		return
 	}
 
 	pullRequests, err := h.service.GetUserAssignments(r.Context(), userID)
 	if err != nil {
 		if errors.Is(err, errs.NotFoundErr) {
-			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNOT_FOUND)
+			writeJSONError(w, errs.NotFoundErr.Error(), http.StatusNotFound, payload.ErrCodeNotFound)
 			return
 		}
 		slog.Error("service failed to get user assignments", "user_id", userID, "error", err)
-		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNOT_FOUND)
+		writeJSONError(w, internalServerErrorMsg, http.StatusInternalServerError, payload.ErrCodeNotFound)
 		return
 	}
 
