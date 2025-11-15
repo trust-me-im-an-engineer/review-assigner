@@ -20,8 +20,13 @@ func (s *Storage) DeleteReviewAssignment(ctx context.Context, prID string, userI
 }
 
 func (s *Storage) AddReviewAssignment(ctx context.Context, prID string, userID string) (reviewerID string, err error) {
-	//TODO implement me
-	panic("implement me")
+	q := `INSERT INTO review_assignments (pull_request_id, user_id)
+		  VALUES ($1, $2) RETURNING user_id`
+	err = s.getExecutor(ctx).QueryRow(ctx, q, prID, userID).Scan(&reviewerID)
+	if err != nil {
+		return "", fmt.Errorf("postgres failed to insert review assignment: %w", err)
+	}
+	return reviewerID, nil
 }
 
 func (s *Storage) GetUserAssignments(ctx context.Context, userID string) ([]model.PullRequestShort, error) {
