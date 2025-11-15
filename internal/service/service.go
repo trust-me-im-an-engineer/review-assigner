@@ -193,9 +193,11 @@ func (s *Service) ReassignPullRequest(ctx context.Context, pullRequestID, oldRev
 			return fmt.Errorf("storage failed to get active colleges: %w", err)
 		}
 
-		// remove oldReviewer to avoid setting same reviewer
-		if i := slices.Index(activeColleges, oldReviewerID); i != -1 {
-			activeColleges = slices.Delete(activeColleges, i, i+1)
+		// remove already assigned reviewers
+		for _, reviewer := range pr.AssignedReviewers {
+			if i := slices.Index(activeColleges, reviewer); i != -1 {
+				activeColleges = slices.Delete(activeColleges, i, i+1)
+			}
 		}
 
 		if len(activeColleges) < 1 {
