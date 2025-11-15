@@ -36,5 +36,5 @@ type PullRequest interface {
 	UpdatePullRequest(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error)
 
 	// GetUserAssignments returns pull requests where user is one of reviewers
-	GetUserAssignments(ctx context.Context, userID string) ([]model.PullRequest, error)
+	GetUserAssignments(ctx context.Context, userID string) ([]model.PullRequestShort, error)
 }

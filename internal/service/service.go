@@ -222,19 +222,9 @@ func (s *Service) ReassignPullRequest(ctx context.Context, pullRequestID, oldRev
 }
 
 func (s *Service) GetUserAssignments(ctx context.Context, id string) ([]model.PullRequestShort, error) {
-	prs, err := s.storage.GetUserAssignments(ctx, id)
+	shortPRs, err := s.storage.GetUserAssignments(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("storage failed to get user assignments: %w", err)
-	}
-
-	shortPRs := make([]model.PullRequestShort, len(prs))
-	for i, pr := range prs {
-		shortPRs[i] = model.PullRequestShort{
-			PullRequestID:   pr.PullRequestID,
-			PullRequestName: pr.PullRequestName,
-			AuthorID:        pr.AuthorID,
-			Status:          pr.Status,
-		}
 	}
 
 	return shortPRs, nil
