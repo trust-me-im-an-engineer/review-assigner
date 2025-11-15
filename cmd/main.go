@@ -46,7 +46,7 @@ func main() {
 	validatorInst := validator.New()
 	router := rest.NewRouter(serviceInst, validatorInst)
 	server := &http.Server{
-		Addr:    cfg.Address,
+		Addr:    cfg.ServerAddress,
 		Handler: router,
 	}
 
@@ -59,7 +59,7 @@ func main() {
 	// Start the server in a goroutine so the main function can listen on stopCh
 	serverErrors := make(chan error, 1)
 	go func() {
-		slog.Info("server running", "address", cfg.Address)
+		slog.Info("server running", "address", cfg.ServerAddress)
 		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			serverErrors <- err
 		}

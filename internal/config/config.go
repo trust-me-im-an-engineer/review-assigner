@@ -9,8 +9,8 @@ import (
 )
 
 type Config struct {
-	LogLevel        slog.Level    `env:"APP_LOG_LEVEL"`
-	Address         string        `env:"APP_ADDRESS,required"`
+	LogLevel        slog.Level    `env:"LOG_LEVEL"`
+	ServerAddress   string        `env:"SERVER_ADDRESS,required"`
 	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT,required"`
 	DB              DBConfig      `envPrefix:"DB_"`
 }
