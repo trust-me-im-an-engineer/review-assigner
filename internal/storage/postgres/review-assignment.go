@@ -11,8 +11,12 @@ import (
 )
 
 func (s *Storage) DeleteReviewAssignment(ctx context.Context, prID string, userID string) error {
-	//TODO implement me
-	panic("implement me")
+	q := `DELETE FROM review_assignments WHERE pull_request_id = $1 AND user_id = $2`
+	_, err := s.getExecutor(ctx).Exec(ctx, q, prID, userID)
+	if err != nil {
+		return fmt.Errorf("postgres failed to delete review assignment: %w", err)
+	}
+	return nil
 }
 
 func (s *Storage) AddReviewAssignment(ctx context.Context, prID string, userID string) (reviewerID string, err error) {
