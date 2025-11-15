@@ -34,6 +34,9 @@ type User interface {
 type PullRequest interface {
 	CreatePullRequestWithAssignments(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error)
 	GetPullRequest(ctx context.Context, id string) (*model.PullRequest, error)
+
+	// UpdatePullRequest does not update review assignments!
+	// Use DeleteReviewAssignment and AddReviewAssignment for this purpose.
 	UpdatePullRequest(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error)
 }
 

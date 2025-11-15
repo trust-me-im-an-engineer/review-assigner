@@ -88,6 +88,32 @@ func (s *Storage) GetPullRequest(ctx context.Context, id string) (*model.PullReq
 }
 
 func (s *Storage) UpdatePullRequest(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error) {
-	//TODO implement me
-	panic("implement me")
+	q := `UPDATE pull_requests
+		  SET name = $2, author_id = $3, status = $4, created_at = $5, merged_at = $6
+		  WHERE id = $1 RETURNING *`
+	rows, err := s.getExecutor(ctx).Query(ctx, q, pr.PullRequestID, pr.PullRequestName, pr.AuthorID, pr.Status, pr.CreatedAt, pr.MergedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.NotFoundErr
+		}
+		return nil, fmt.Errorf("postgres failed to execute update pull request query: %w", err)
+	}
+	defer rows.Close()
+
+	daoPR, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[dao.PullRequest])
+	if err != nil {
+		return nil, fmt.Errorf("postgres failed to collect one row: %w", err)
+	}
+
+	updatedPR := &model.PullRequest{
+		PullRequestID:     daoPR.ID,
+		PullRequestName:   daoPR.Name,
+		AuthorID:          daoPR.AuthorID,
+		Status:            daoPR.Status,
+		AssignedReviewers: pr.AssignedReviewers,
+		CreatedAt:         daoPR.CreatedAt,
+		MergedAt:          daoPR.MergedAt,
+	}
+
+	return updatedPR, nil
 }
