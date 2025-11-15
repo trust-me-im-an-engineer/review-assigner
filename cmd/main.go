@@ -32,7 +32,7 @@ func main() {
 	slog.Info("set json logging to stdout", "level", cfg.LogLevel)
 
 	// Initializations
-	storage, err := postgres.New(context.Background(), *cfg.DB)
+	storage, err := postgres.New(context.Background(), cfg.DB)
 	if err != nil {
 		slog.Error("failed to initialize postgres storage", "error", err)
 		os.Exit(1)
