@@ -4,10 +4,12 @@ import (
 	"net/http"
 
 	"review-assigner/internal/rest/handlers"
+	"review-assigner/internal/service"
+	"review-assigner/internal/validator"
 )
 
-func NewRouter(s *service.Service) *http.ServeMux {
-	h := handlers.NewHandler(s)
+func NewRouter(s *service.Service, v *validator.Validator) *http.ServeMux {
+	h := handlers.NewHandler(s, v)
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /team/add", h.AddTeamAddUpdateUsers)

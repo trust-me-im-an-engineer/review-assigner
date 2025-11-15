@@ -7,12 +7,11 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
-
 	"review-assigner/internal/errs"
 	"review-assigner/internal/model"
 	"review-assigner/internal/rest/payload"
 	"review-assigner/internal/service"
+	"review-assigner/internal/validator"
 )
 
 const (
@@ -24,10 +23,10 @@ const (
 // Note that handler is forced to return semantically incorrect error codes to meet openapi specs.
 type Handler struct {
 	service  *service.Service
-	validate *validator.Validate
+	validate *validator.Validator
 }
 
-func NewHandler(service *service.Service, validate *validator.Validate) *Handler {
+func NewHandler(service *service.Service, validate *validator.Validator) *Handler {
 	return &Handler{service: service, validate: validate}
 }
 
