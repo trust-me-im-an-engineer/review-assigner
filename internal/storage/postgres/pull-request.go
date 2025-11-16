@@ -38,16 +38,16 @@ func (s *Storage) CreatePullRequestWithAssignments(ctx context.Context, pr *mode
 			pr.MergedAt,
 		)
 		if err != nil {
-			var pgxError *pgconn.PgError
-			if errors.As(err, &pgxError) && pgxError.Code == UniqueViolationErr {
-				return errs.PullRequestExistsError{PullRequestID: pr.Id}
-			}
 			return fmt.Errorf("postgres failed to execute insert query for pull request: %w", err)
 		}
 		defer rowsPR.Close()
 
 		daoPR, err := pgx.CollectOneRow(rowsPR, pgx.RowToStructByName[dao.PullRequest])
 		if err != nil {
+			var pgxError *pgconn.PgError
+			if errors.As(err, &pgxError) && pgxError.Code == UniqueViolationErr {
+				return errs.PullRequestExistsError{PullRequestID: pr.Id}
+			}
 			return fmt.Errorf("postgres failed to collect dao pull request row: %w", err)
 		}
 
