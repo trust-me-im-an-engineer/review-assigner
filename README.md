@@ -2,7 +2,7 @@
 
 Тестовое
 задание выполнено в соответствии
-с [техническим заданием](https://github.com/avito-tech/tech-internship/blob/main/Tech%20Internships/Backend/Backend-trainee-assignment-autumn-2025/Backend-trainee-assignment-autumn-2025.md).
+с [требованиями](https://github.com/avito-tech/tech-internship/blob/main/Tech%20Internships/Backend/Backend-trainee-assignment-autumn-2025/Backend-trainee-assignment-autumn-2025.md).
 Приложение строго
 следует [спецификации openapi](https://github.com/avito-tech/tech-internship/blob/main/Tech%20Internships/Backend/Backend-trainee-assignment-autumn-2025/openapi.yml)
 из технического задания.
