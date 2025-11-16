@@ -15,8 +15,7 @@ import (
 
 // AddTeam inserts a new team into the database.
 func (s *Storage) AddTeam(ctx context.Context, name string) (string, error) {
-	q := `INSERT INTO teams (name) VALUES ($1)`
-
+	q := `INSERT INTO teams (name) VALUES ($1) RETURNING name`
 	var insertedName string
 	err := s.getExecutor(ctx).QueryRow(ctx, q, name).Scan(&insertedName)
 	if err != nil {

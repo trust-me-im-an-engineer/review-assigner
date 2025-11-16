@@ -23,14 +23,14 @@ type TeamMember struct {
 // Team represents a collection of users.
 // Corresponds to #/components/schemas/Team.
 type Team struct {
-	Name    string       `json:"name" validate:"required,max=255"`
+	Name    string       `json:"team_name" validate:"required,max=255"`
 	Members []TeamMember `json:"members" validate:"required,dive"`
 }
 
 // User represents an individual user with their team and activity status.
 // Corresponds to #/components/schemas/User.
 type User struct {
-	Id       string `json:"id" validate:"required,max=255"`
+	Id       string `json:"user_id" validate:"required,max=255"`
 	Username string `json:"username" validate:"required,max=255"`
 	TeamName string `json:"team_name" validate:"required,max=255"`
 	IsActive bool   `json:"is_active"`
@@ -39,8 +39,8 @@ type User struct {
 // PullRequestShort provides a basic, short representation of a pull request.
 // Corresponds to #/components/schemas/PullRequestShort.
 type PullRequestShort struct {
-	Id       string            `json:"id" validate:"required,max=255"`
-	Name     string            `json:"name" validate:"required,max=255"`
+	Id       string            `json:"pull_request_id" validate:"required,max=255"`
+	Name     string            `json:"pull_request_name" validate:"required,max=255"`
 	AuthorID string            `json:"author_id" validate:"required,max=255"`
 	Status   PullRequestStatus `json:"status" validate:"required,oneof=OPEN MERGED"`
 }
@@ -49,8 +49,8 @@ type PullRequestShort struct {
 // and timestamps.
 // Corresponds to #/components/schemas/PullRequest.
 type PullRequest struct {
-	Id       string            `json:"id" validate:"required,max=255"`
-	Name     string            `json:"name" validate:"required,max=255"`
+	Id       string            `json:"pull_request_id" validate:"required,max=255"`
+	Name     string            `json:"pull_request_name" validate:"required,max=255"`
 	AuthorID string            `json:"author_id" validate:"required,max=255"`
 	Status   PullRequestStatus `json:"status" validate:"required,oneof=OPEN MERGED"`
 	// Max 2 reviewers are assigned, as per API description/logic
