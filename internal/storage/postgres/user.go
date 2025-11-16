@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 
@@ -14,26 +15,31 @@ import (
 
 // AddUpdateUsers handles bulk insertion and updating of users using ON CONFLICT.
 func (s *Storage) AddUpdateUsers(ctx context.Context, users []model.User) ([]model.User, error) {
-	vals := make([]any, 0, len(users))
-	for _, user := range users {
-		vals = append(vals, []any{user.Id, user.Username, user.TeamName, user.IsActive})
+	if len(users) == 0 {
+		return []model.User{}, nil
 	}
 
-	builder := squirrelBuilder.Insert("users").
-		Columns("id", "username", "team_name", "is_active").
-		Values(vals...).
-		Suffix(`ON CONFLICT (id) DO UPDATE SET 
+	args := make([]any, 0, len(users)*4)
+	valuePlaceholders := make([]string, len(users))
+
+	argIdx := 1
+	for i, u := range users {
+		valuePlaceholders[i] = fmt.Sprintf("($%d, $%d, $%d, $%d)", argIdx, argIdx+1, argIdx+2, argIdx+3)
+		args = append(args, u.Id, u.Username, u.TeamName, u.IsActive)
+		argIdx += 4
+	}
+
+	query := fmt.Sprintf(`
+        INSERT INTO users (id, username, team_name, is_active)
+        VALUES %s
+        ON CONFLICT (id) DO UPDATE SET 
             username = EXCLUDED.username,
             team_name = EXCLUDED.team_name,
             is_active = EXCLUDED.is_active
-			RETURNING *`)
+        RETURNING *;
+    `, strings.Join(valuePlaceholders, ","))
 
-	query, vals, err := builder.ToSql()
-	if err != nil {
-		return nil, fmt.Errorf("squirrel failed to build query: %w", err)
-	}
-
-	rows, err := s.getExecutor(ctx).Query(ctx, query, vals...)
+	rows, err := s.getExecutor(ctx).Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("postgres failed to execute query: %w", err)
 	}
