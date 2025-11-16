@@ -1,0 +1,231 @@
+@host = localhost:8080
+@UserToken = usertoken
+@AdminToken = admin
+
+### 1. Create Team (payments)
+# POST /team/add
+POST http://{{host}}/team/add
+Content-Type: application/json
+
+{
+  "team_name": "payments",
+  "members": [
+    {
+      "user_id": "u1",
+      "username": "Alice",
+      "is_active": true
+    },
+    {
+      "user_id": "u2",
+      "username": "Bob",
+      "is_active": true
+    },
+    {
+      "user_id": "u3",
+      "username": "Charlie",
+      "is_active": true
+    }
+  ]
+}
+
+
+
+### 2. Create Team (backend)
+# POST /team/add
+POST http://{{host}}/team/add
+Content-Type: application/json
+
+{
+  "team_name": "backend",
+  "members": [
+    {
+      "user_id": "u4",
+      "username": "David",
+      "is_active": true
+    },
+    {
+      "user_id": "u5",
+      "username": "Eve",
+      "is_active": true
+    }
+  ]
+}
+
+
+
+### 3. Get Team (payments)
+# GET /team/get?team_name=payments
+GET http://{{host}}/team/get?team_name=payments
+X-User-Token: {{UserToken}}
+
+
+
+### 4. Set User u2 (Bob) to Inactive
+# POST /users/setIsActive
+POST http://{{host}}/users/setIsActive
+Content-Type: application/json
+X-Admin-Token: {{AdminToken}}
+
+{
+  "user_id": "u2",
+  "is_active": false
+}
+
+
+
+### 5. Create Pull Request (pr-1001) by u1 (Alice) - u2 should be skipped due to inactivity
+# POST /pullRequest/create
+POST http://{{host}}/pullRequest/create
+Content-Type: application/json
+X-Admin-Token: {{AdminToken}}
+
+{
+  "pull_request_id": "pr-1001",
+  "pull_request_name": "Implement Payment Service",
+  "author_id": "u1"
+}
+
+
+
+### 6. Get Review PRs for u3 (Charlie) - Should see pr-1001
+# GET /users/getReview?user_id=u3
+GET http://{{host}}/users/getReview?user_id=u3
+X-User-Token: {{UserToken}}
+
+
+
+### 7. Reassign Reviewer u3 to a new candidate
+# POST /pullRequest/reassign
+POST http://{{host}}/pullRequest/reassign
+Content-Type: application/json
+X-Admin-Token: {{AdminToken}}
+
+{
+  "pull_request_id": "pr-1001",
+  "old_user_id": "u3"
+}
+
+
+
+### 8. Merge Pull Request (pr-1001)
+# POST /pullRequest/merge
+POST http://{{host}}/pullRequest/merge
+Content-Type: application/json
+X-Admin-Token: {{AdminToken}}
+
+{
+  "pull_request_id": "pr-1001"
+}
+
+
+
+### 9. Get Review PRs for u3 (Charlie) after merge - Should see pr-1001 with status MERGED
+# GET /users/getReview?user_id=u3
+GET http://{{host}}/users/getReview?user_id=u3
+X-User-Token: {{UserToken}}
+
+
+
+### 10. Attempt to Reassign on Merged PR (Should fail with PR_MERGED)
+# POST /pullRequest/reassign
+POST http://{{host}}/pullRequest/reassign
+Content-Type: application/json
+X-Admin-Token: {{AdminToken}}
+
+{
+  "pull_request_id": "pr-1001",
+  "old_user_id": "u3"
+}
+
+### 11. Attempt to Create Existing Team (Should fail with TEAM_EXISTS)
+# POST /team/add
+POST http://{{host}}/team/add
+Content-Type: application/json
+
+{
+  "team_name": "payments",
+  "members": [
+    {
+      "user_id": "u10",
+      "username": "Zoe",
+      "is_active": true
+    }
+  ]
+}
+
+### 12. Attempt to Get Non-Existent Team (Should fail with 404 NOT_FOUND)
+# GET /team/get?team_name=nonexistent
+GET http://{{host}}/team/get?team_name=nonexistent
+X-User-Token: {{UserToken}}
+
+### 13. Attempt to Create Existing PR (Should fail with PR_EXISTS)
+# POST /pullRequest/create
+POST http://{{host}}/pullRequest/create
+Content-Type: application/json
+X-Admin-Token: {{AdminToken}}
+
+{
+  "pull_request_id": "pr-1001",
+  "pull_request_name": "Duplicate PR",
+  "author_id": "u1"
+}
+
+### 14. Attempt to Set is_active for Non-Existent User (Should fail with 404 NOT_FOUND)
+# POST /users/setIsActive
+POST http://{{host}}/users/setIsActive
+Content-Type: application/json
+X-Admin-Token: {{AdminToken}}
+
+{
+  "user_id": "nonexistent_user",
+  "is_active": false
+}
+
+### 15. Attempt to Merge Non-Existent PR (Should fail with 404 NOT_FOUND)
+# POST /pullRequest/merge
+POST http://{{host}}/pullRequest/merge
+Content-Type: application/json
+X-Admin-Token: {{AdminToken}}
+
+{
+  "pull_request_id": "pr-9999"
+}
+
+### 16. Create Team (soloteam) with One Member
+# POST /team/add
+POST http://{{host}}/team/add
+Content-Type: application/json
+
+{
+  "team_name": "soloteam",
+  "members": [
+    {
+      "user_id": "solo1",
+      "username": "The Soloist",
+      "is_active": true
+    }
+  ]
+}
+
+### 17. Create PR (pr-2001) by solo1 - 0 reviewers assigned
+# POST /pullRequest/create
+POST http://{{host}}/pullRequest/create
+Content-Type: application/json
+X-Admin-Token: {{AdminToken}}
+
+{
+  "pull_request_id": "pr-2001",
+  "pull_request_name": "Solo PR",
+  "author_id": "solo1"
+}
+
+### 18. Attempt to Reassign a Non-Assigned Reviewer (Should fail with NOT_ASSIGNED)
+# POST /pullRequest/reassign
+POST http://{{host}}/pullRequest/reassign
+Content-Type: application/json
+X-Admin-Token: {{AdminToken}}
+
+{
+  "pull_request_id": "pr-2001",
+  "old_user_id": "u1"
+}
