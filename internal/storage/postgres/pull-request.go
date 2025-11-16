@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -13,15 +14,29 @@ import (
 	"review-assigner/internal/storage/postgres/dao"
 )
 
-// CreatePullRequestWithAssignments creates pull request and assigns users to it.
 func (s *Storage) CreatePullRequestWithAssignments(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error) {
 	var createdPR model.PullRequest
+
 	err := s.InTransaction(ctx, func(ctx context.Context) error {
 		e := s.getExecutor(ctx)
 
-		qPR := `INSERT INTO pull_requests (id, name, author_id, status, created_at, merged_at) 
-		  VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`
-		rowsPR, err := e.Query(ctx, qPR, pr.Id, pr.Name, pr.AuthorID, pr.Status, pr.CreatedAt, pr.MergedAt)
+		// Insert PullRequest
+		qPR := `
+			INSERT INTO pull_requests (id, name, author_id, status, created_at, merged_at)
+			VALUES ($1, $2, $3, $4, $5, $6)
+			RETURNING *;
+		`
+
+		rowsPR, err := e.Query(
+			ctx,
+			qPR,
+			pr.Id,
+			pr.Name,
+			pr.AuthorID,
+			pr.Status,
+			pr.CreatedAt,
+			pr.MergedAt,
+		)
 		if err != nil {
 			var pgxError *pgconn.PgError
 			if errors.As(err, &pgxError) && pgxError.Code == UniqueViolationErr {
@@ -36,18 +51,40 @@ func (s *Storage) CreatePullRequestWithAssignments(ctx context.Context, pr *mode
 			return fmt.Errorf("postgres failed to collect dao pull request row: %w", err)
 		}
 
-		vals := make([]any, 0, 2)
-		for _, reviewer := range pr.AssignedReviewers {
-			vals = append(vals, reviewer, pr.Id)
+		// Build VALUES for review_assignments
+		if len(pr.AssignedReviewers) == 0 {
+			// no assignments, return PR as-is
+			createdPR = model.PullRequest{
+				Id:                daoPR.ID,
+				Name:              daoPR.Name,
+				AuthorID:          daoPR.AuthorID,
+				Status:            daoPR.Status,
+				AssignedReviewers: []string{},
+				CreatedAt:         daoPR.CreatedAt,
+				MergedAt:          daoPR.MergedAt,
+			}
+			return nil
 		}
 
-		builder := squirrelBuilder.Insert("review_assignments").
-			Columns("user_id", "pull_request_id").
-			Values(vals...).
-			Suffix("RETURNING *")
-		qAssignments, vals, err := builder.ToSql()
+		valuePlaceholders := make([]string, len(pr.AssignedReviewers))
+		args := make([]any, 0, len(pr.AssignedReviewers)*2)
 
-		rowsAssignments, err := e.Query(ctx, qAssignments, vals...)
+		argIndex := 1
+		for i, reviewer := range pr.AssignedReviewers {
+			// each row: (user_id, pull_request_id)
+			valuePlaceholders[i] = fmt.Sprintf("($%d, $%d)", argIndex, argIndex+1)
+
+			args = append(args, reviewer, pr.Id)
+			argIndex += 2
+		}
+
+		qAssignments := fmt.Sprintf(`
+			INSERT INTO review_assignments (user_id, pull_request_id)
+			VALUES %s
+			RETURNING *;
+		`, strings.Join(valuePlaceholders, ","))
+
+		rowsAssignments, err := e.Query(ctx, qAssignments, args...)
 		if err != nil {
 			return fmt.Errorf("postgres failed to execute insert query for review assignments: %w", err)
 		}
@@ -58,7 +95,7 @@ func (s *Storage) CreatePullRequestWithAssignments(ctx context.Context, pr *mode
 			return fmt.Errorf("postgres failed to collect dao assignments: %w", err)
 		}
 
-		assignedReviewers := make([]string, 0, 2)
+		assignedReviewers := make([]string, 0, len(daoAssignments))
 		for _, assignment := range daoAssignments {
 			assignedReviewers = append(assignedReviewers, assignment.UserID)
 		}
@@ -79,6 +116,7 @@ func (s *Storage) CreatePullRequestWithAssignments(ctx context.Context, pr *mode
 	if err != nil {
 		return nil, err
 	}
+
 	return &createdPR, nil
 }
 

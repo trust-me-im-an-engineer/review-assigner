@@ -9,8 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/Masterminds/squirrel"
-
 	"review-assigner/internal/config"
 	"review-assigner/internal/storage"
 )
@@ -18,8 +16,6 @@ import (
 var _ storage.Storage = (*Storage)(nil)
 
 var txContextKey activeTxKey = 0
-
-var squirrelBuilder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
 type Storage struct {
 	// pool is not meant to be used in data access methods!
