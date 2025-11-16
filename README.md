@@ -13,9 +13,11 @@
 
 ## Запуск
 
-Приложение упаковано в Dockerfile; приложение, база данных и миграции собраны в docker-compose.yaml:
+Приложение упаковано в Dockerfile; приложение, база данных и миграции собраны в docker-compose.yaml.
 
-`docker-compose up`
+Для запуска достаточно указать переменную окружения `DB_PASSWORD`:
+
+`docker-compose -e DB_PASSWORD=password up`
 
 ## Тестирование
 
