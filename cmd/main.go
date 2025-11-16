@@ -11,6 +11,7 @@ import (
 
 	"review-assigner/internal/config"
 	"review-assigner/internal/rest"
+	"review-assigner/internal/rest/middleware"
 	"review-assigner/internal/service"
 	"review-assigner/internal/storage/postgres"
 	"review-assigner/internal/validator"
@@ -44,7 +45,8 @@ func main() {
 	}()
 	serviceInst := service.NewService(storage)
 	validatorInst := validator.New()
-	router := rest.NewRouter(serviceInst, validatorInst)
+	middlewareInst := middleware.NewAuth(cfg.AdminToken)
+	router := rest.NewRouter(serviceInst, validatorInst, middlewareInst)
 	server := &http.Server{
 		Addr:    cfg.ServerAddress,
 		Handler: router,

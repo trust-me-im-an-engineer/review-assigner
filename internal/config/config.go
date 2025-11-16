@@ -12,6 +12,7 @@ type Config struct {
 	LogLevel        slog.Level    `env:"LOG_LEVEL"`
 	ServerAddress   string        `env:"SERVER_ADDRESS,required"`
 	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT,required"`
+	AdminToken      string        `env:"ADMIN_TOKEN,required"`
 	DB              DBConfig      `envPrefix:"DB_"`
 }
 
