@@ -17,12 +17,14 @@ services:
         condition: service_healthy
       migrations:
         condition: service_completed_successfully
+    networks:
+      - new
 
   db:
     image: postgres:15-alpine
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=review-assigner-db
     ports:
       - "5432:5432"
@@ -33,11 +35,15 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
+    networks:
+      new:
+        aliases:
+          - database
+  
   migrations:
-    image: migrate/migrate:v4.17.0
+    image: migrate/migrate
     volumes:
-      - ./migrations:/migrations
+      - ./migrations:/migrations:Z
     command:
       - -path=/migrations
       - -database=postgresql://postgres:${DB_PASSWORD}@db:5432/review-assigner-db?sslmode=disable
@@ -47,6 +53,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - new
 
 volumes:
   postgres_data:
+
+networks:
+  new:
