@@ -128,15 +128,16 @@ func (s *Storage) GetPullRequest(ctx context.Context, id string) (*model.PullReq
 		qPR := `SELECT * FROM pull_requests WHERE id = $1`
 		rowsPR, err := e.Query(ctx, qPR, id)
 		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				return errs.NotFoundErr
-			}
+
 			return fmt.Errorf("postgres failed to get pull request: %w", err)
 		}
 		defer rowsPR.Close()
 
 		daoPR, err := pgx.CollectOneRow(rowsPR, pgx.RowToStructByName[dao.PullRequest])
 		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return errs.NotFoundErr
+			}
 			return fmt.Errorf("postgres failed to collect one row: %w", err)
 		}
 
@@ -152,15 +153,15 @@ func (s *Storage) GetPullRequest(ctx context.Context, id string) (*model.PullReq
 		qAssignments := `SELECT * FROM review_assignments WHERE pull_request_id = $1`
 		rowsAssignments, err := e.Query(ctx, qAssignments, id)
 		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				return errs.NotFoundErr
-			}
 			return fmt.Errorf("postgres failed to get review assignments: %w", err)
 		}
 		defer rowsAssignments.Close()
 
 		daoAssignments, err := pgx.CollectRows(rowsAssignments, pgx.RowToStructByName[dao.ReviewAssignment])
 		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return errs.NotFoundErr
+			}
 			return fmt.Errorf("postgres failed to collect rows: %w", err)
 		}
 
@@ -186,15 +187,15 @@ func (s *Storage) UpdatePullRequest(ctx context.Context, pr *model.PullRequest) 
 		  WHERE id = $1 RETURNING *`
 	rows, err := s.getExecutor(ctx).Query(ctx, q, pr.Id, pr.Name, pr.AuthorID, pr.Status, pr.CreatedAt, pr.MergedAt)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errs.NotFoundErr
-		}
 		return nil, fmt.Errorf("postgres failed to execute update pull request query: %w", err)
 	}
 	defer rows.Close()
 
 	daoPR, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[dao.PullRequest])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.NotFoundErr
+		}
 		return nil, fmt.Errorf("postgres failed to collect one row: %w", err)
 	}
 
