@@ -1,4 +1,16 @@
-CREATE TYPE pull_request_status AS ENUM ('OPEN', 'MERGED');
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (SELECT 1
+                       FROM pg_type t
+                                JOIN pg_namespace n ON n.oid = t.typnamespace
+                       WHERE t.typname = 'pull_request_status'
+                         AND n.nspname = CURRENT_SCHEMA())
+        THEN
+            CREATE TYPE pull_request_status AS ENUM ('OPEN', 'MERGED');
+        END IF;
+    END
+$$;
 
 CREATE TABLE IF NOT EXISTS teams
 (
@@ -31,5 +43,5 @@ CREATE TABLE IF NOT EXISTS review_assignments
     PRIMARY KEY (user_id, pull_request_id)
 );
 
-CREATE INDEX idx_users_team_active ON users (team_name, is_active);
-CREATE INDEX idx_pull_requests_author ON pull_requests (author_id);
+CREATE INDEX IF NOT EXISTS idx_users_team_active ON users (team_name, is_active);
+CREATE INDEX IF NOT EXISTS idx_pull_requests_author ON pull_requests (author_id);
