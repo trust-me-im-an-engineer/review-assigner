@@ -15,9 +15,11 @@
 
 Приложение упаковано в Dockerfile; приложение, база данных и миграции собраны в docker-compose.yaml.
 
-Для запуска достаточно указать переменную окружения `DB_PASSWORD`:
+Для запуска требуется переменная окружения `DB_PASSWORD`.
 
-`docker-compose -e DB_PASSWORD=password up`
+Можно указать ее в .env файле и запустить `docker-compose up`.
+
+Либо экспортировать переменную при запуске: `DB_PASSWORD=your_secure_password docker-compose up`.
 
 ## Тестирование
 
